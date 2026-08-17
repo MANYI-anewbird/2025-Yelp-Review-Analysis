@@ -1,3 +1,7 @@
+# Team 10 working log
+
+Week-by-week notes from the BA820 project (kept as-is).
+
 - Read in json files ✅
 - preprocess/cleaning ✅
 - EDA ✅

@@ -1,0 +1,8 @@
+.DS_Store
+.ipynb_checkpoints/
+__pycache__/
+.venv/
+venv/
+*.parquet
+yelp_academic_dataset_*.json
+data/
