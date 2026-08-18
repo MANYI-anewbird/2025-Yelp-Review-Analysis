@@ -6,7 +6,7 @@ Default Yelp sort is recency and stars. That is a ranking for *browsing*, not fo
 
 **How we built that:** **GCP** scale-up (chunked JSON → Parquet), then **TF-IDF + NMF** topics and a **stars-supervised sentiment** model, wired into a preference ranker (`get_relevant_review`).
 
-Proposal: [`docs/proposal.pdf`](docs/proposal.pdf). Group archive of [BARATZL/Text_mining_reviews](https://github.com/BARATZL/Text_mining_reviews).
+Proposal: [`docs/proposal.pdf`](docs/proposal.pdf). Final write-up: [`docs/final.pdf`](docs/final.pdf). Group archive of [BARATZL/Text_mining_reviews](https://github.com/BARATZL/Text_mining_reviews).
 
 ---
 
