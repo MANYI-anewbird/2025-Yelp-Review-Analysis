@@ -4,6 +4,8 @@
 
 Default Yelp sort is recency and stars. That is a ranking for *browsing*, not for *deciding*. This BA820 (Section A, Team 10) study takes the public [Yelp Open Dataset](https://www.yelp.com/dataset), cuts it to cafés so the text methods can actually run, and builds a **preference → relevant reviews** retrieve: given a `business_id` and a question, return the reviews that speak to that question, with topic and sentiment attached.
 
+**How we built that:** **GCP** scale-up (chunked JSON → Parquet), then **TF-IDF + NMF** topics and a **stars-supervised sentiment** model, wired into a preference ranker (`get_relevant_review`).
+
 Proposal: [`docs/proposal.pdf`](docs/proposal.pdf). Group archive of [BARATZL/Text_mining_reviews](https://github.com/BARATZL/Text_mining_reviews).
 
 ---
@@ -58,6 +60,22 @@ Run notebooks in order. Point them at a local or GCS copy of the academic dump �
 | [`08_Functions`](notebooks/08_Functions_sectionA_team10.ipynb) | `get_relevant_review` |
 
 `docs/team-log.md` is the week-by-week working log.
+
+---
+
+## How we built it (technical)
+
+Stack: **GCP VM** + **PyArrow Parquet** → **NLTK** tokenize → **scikit-learn** TF-IDF / NMF / classifiers → **TextBlob** polarity → a thin retrieval function.
+
+**Scale.** Full dump ~8M reviews. Chunked JSON reads on GCS, JSON → Parquet (~8.65 GB → ~5 GB). EDA and numeric clustering (K-means; PCA to 6 components ≈ 85% variance, then cluster again) ran on that table. **UMAP on the full corpus killed the kernel.** Full-corpus TF-IDF was too expensive (`docs/notebook-04.md`). The working NLP set is the **café subset**.
+
+**Text.** Tokenize, stopwords, punctuation; bag-of-words then **TF-IDF**. Topics: **LDA first, then NMF (k = 4)** — NMF’s loadings were the ones we could name (drink / service / place / wait). We did not keep LDA as the production cut.
+
+**Sentiment.** Two labels: TextBlob polarity, and a **stars-supervised** split. The raw classifier treated almost every review as positive (**negative recall 0.04**). Class rebalancing (not a new architecture) moved negative recall to **0.42**; positive F1 stayed ~0.92. That is the technical proof behind “the first model was a five-star detector.”
+
+**Retrieval.** `get_relevant_review(business_id, preference)` embeds the preference against the café-review TF-IDF space, returns nearest reviews, and attaches the NMF topic + sentiment. It is cosine-style ranking on a fitted vectorizer — not a separate LLM.
+
+**What we left on the table.** No transformer embeddings, no production index. The strength on display is *making 8M rows tractable, then picking the subset and the model that still answer a guest’s question.*
 
 ---
 
